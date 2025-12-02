@@ -51,26 +51,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGitHub = async () => {
+  const login = async (email, password) => {
     try {
-      await account.createOAuth2Session('github', 
-        `${window.location.origin}/dashboard`,
-        `${window.location.origin}/auth`
-      );
+      await account.createEmailPasswordSession(email, password);
+      await checkAuth();
     } catch (error) {
-      console.error('GitHub login error:', error);
+      console.error('Login error:', error);
       throw error;
     }
   };
 
-  const loginWithGoogle = async () => {
+  const register = async (email, password, name) => {
     try {
-      await account.createOAuth2Session('google',
-        `${window.location.origin}/dashboard`,
-        `${window.location.origin}/auth`
-      );
+      await account.create('unique()', email, password, name);
+      await account.createEmailPasswordSession(email, password);
+      await checkAuth();
     } catch (error) {
-      console.error('Google login error:', error);
+      console.error('Registration error:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email) => {
+    try {
+      await account.createRecovery(email, `${window.location.origin}/reset-password`);
+    } catch (error) {
+      console.error('Password reset error:', error);
       throw error;
     }
   };
@@ -105,10 +111,9 @@ export const AuthProvider = ({ children }) => {
         handle: profileData.handle.trim().toLowerCase(),
         bio: profileData.bio?.trim() || '',
         avatarStorageId: profileData.avatarStorageId || '',
-        preferredLanguages: profileData.preferredLanguages || [],
+        preferredLanguages: JSON.stringify(profileData.preferredLanguages || []),
         role: 'user',
-        isPublicProfile: profileData.isPublicProfile || false,
-        createdAt: new Date().toISOString()
+        isPublicProfile: profileData.isPublicProfile || false
       };
       
       const newProfile = await databases.createDocument(
@@ -129,8 +134,9 @@ export const AuthProvider = ({ children }) => {
     user,
     profile,
     loading,
-    loginWithGitHub,
-    loginWithGoogle,
+    login,
+    register,
+    resetPassword,
     logout,
     createProfile,
     checkAuth

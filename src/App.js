@@ -16,6 +16,8 @@ import Favorites from './pages/Favorites';
 import Collections from './pages/Collections';
 import PublicSnippet from './pages/PublicSnippet';
 import SearchResults from './pages/SearchResults';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import NotFound from './pages/NotFound';
 import Loading from './components/ui/Loading';
 
@@ -30,28 +32,9 @@ const queryClient = new QueryClient({
 
 const ProtectedRoute = ({ children }) => {
   const { user, profile, loading } = useAuth();
-  const [oauthChecking, setOauthChecking] = useState(false);
-  const [hasCheckedOAuth, setHasCheckedOAuth] = useState(false);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasOAuthParams = urlParams.get('userId') || urlParams.get('secret') || urlParams.get('sessionId');
-    
-    if (hasOAuthParams && !hasCheckedOAuth) {
-      setOauthChecking(true);
-      setHasCheckedOAuth(true);
-      
-      // Wait longer for OAuth session to establish
-      setTimeout(() => {
-        setOauthChecking(false);
-        // Force a page reload to get fresh auth state
-        window.location.reload();
-      }, 3000);
-    }
-  }, [hasCheckedOAuth]);
-
-  if (loading || oauthChecking) {
-    return <Loading fullScreen message={oauthChecking ? "Completing sign in..." : "Checking authentication..."} />;
+  if (loading) {
+    return <Loading fullScreen message="Checking authentication..." />;
   }
 
   if (!user) {
@@ -96,6 +79,22 @@ const App = () => {
                   element={
                     <PublicRoute>
                       <Auth />
+                    </PublicRoute>
+                  } 
+                />
+                <Route 
+                  path="/register" 
+                  element={
+                    <PublicRoute>
+                      <Register />
+                    </PublicRoute>
+                  } 
+                />
+                <Route 
+                  path="/forgot-password" 
+                  element={
+                    <PublicRoute>
+                      <ForgotPassword />
                     </PublicRoute>
                   } 
                 />
