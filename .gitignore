@@ -8,6 +8,11 @@
 # testing
 /coverage
 
+
+#env files
+.env
+.env.*.local
+
 # production
 /build
 
