@@ -63,7 +63,7 @@ const LibraryModal = ({ isOpen, onClose, userId }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/50 z-[9999]"
           />
           
           {/* Modal */}
@@ -71,7 +71,7 @@ const LibraryModal = ({ isOpen, onClose, userId }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           >
             <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full">
               {/* Header */}
@@ -161,14 +161,14 @@ const LibraryModal = ({ isOpen, onClose, userId }) => {
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    className="flex-1"
+                    className="flex-1 dark:text-white"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     loading={createLibraryMutation.isLoading}
-                    className="flex-1"
+                    className="flex-1 dark:text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Create Library

@@ -14,8 +14,8 @@ const Button = ({
   const variants = {
     primary: 'bg-primary-light hover:bg-primary-dark text-white focus:ring-primary-light dark:bg-primary-dark dark:hover:bg-primary-light dark:focus:ring-primary-dark',
     secondary: 'bg-secondary-light hover:bg-secondary-dark text-white focus:ring-secondary-light dark:bg-secondary-dark dark:hover:bg-secondary-light dark:focus:ring-secondary-dark',
-    outline: 'border border-border-light hover:bg-surface-light text-text-primary-light focus:ring-primary-light dark:border-border-dark dark:hover:bg-surface-dark dark:text-text-primary-dark dark:focus:ring-primary-dark',
-    ghost: 'hover:bg-surface-light text-text-primary-light focus:ring-primary-light dark:hover:bg-surface-dark dark:text-text-primary-dark dark:focus:ring-primary-dark'
+    outline: 'border border-border-light hover:bg-surface-light text-text-primary-light focus:ring-primary-light dark:border-border-dark dark:hover:bg-surface-dark dark:text-white dark:focus:ring-primary-dark',
+    ghost: 'hover:bg-surface-light text-text-primary-light focus:ring-primary-light dark:hover:bg-surface-dark dark:text-white dark:focus:ring-primary-dark'
   };
 
   const sizes = {

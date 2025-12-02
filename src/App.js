@@ -15,6 +15,9 @@ import Tags from './pages/Tags';
 import Favorites from './pages/Favorites';
 import Collections from './pages/Collections';
 import PublicSnippet from './pages/PublicSnippet';
+import SnippetDetails from './pages/SnippetDetails';
+import EditSnippet from './pages/EditSnippet';
+import LibraryDetails from './pages/LibraryDetails';
 import SearchResults from './pages/SearchResults';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -135,8 +138,32 @@ const App = () => {
                   } 
                 />
                 <Route 
+                  path="/library/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <LibraryDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
                   path="/s/:publicId" 
                   element={<PublicSnippet />} 
+                />
+                <Route 
+                  path="/snippet/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <SnippetDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/edit/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <EditSnippet />
+                    </ProtectedRoute>
+                  } 
                 />
                 <Route 
                   path="/browse" 

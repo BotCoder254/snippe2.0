@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Copy, Eye, Heart, Share, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Star, Copy, Eye, Heart, Share, MoreHorizontal, Edit, Trash2, Paperclip, Image, File, FileText } from 'lucide-react';
 import Button from '../ui/Button';
 import ShareModal from '../ui/ShareModal';
 import { useStarSnippet } from '../../hooks/useSnippets';
 import { useToggleStar, useIsSnippetStarred } from '../../hooks/useStars';
 import { useAuth } from '../../contexts/AuthContext';
+import { getFilePreview, getFileDownload } from '../../hooks/useStorage';
+import { parseTags, parseAttachments, formatDate, getLanguageColor } from '../../utils/snippetHelpers';
 
 const SnippetCard = ({ 
   snippet, 
@@ -27,6 +29,17 @@ const SnippetCard = ({
   const { data: isStarred = false } = useIsSnippetStarred(user?.$id, snippet.$id);
   
   const isOwner = user && snippet.ownerId === user.$id;
+  
+  // Parse attachments if stored as JSON string
+  const attachments = parseAttachments(snippet.attachments);
+  
+  const getFileIcon = (type) => {
+    if (type?.startsWith('image/')) return Image;
+    if (type?.includes('text') || type?.includes('json')) return FileText;
+    return File;
+  };
+  
+  const isImage = (type) => type?.startsWith('image/');
 
   const copyToClipboard = async (e) => {
     e.stopPropagation();
@@ -96,17 +109,7 @@ const SnippetCard = ({
     setShowShareModal(true);
   };
 
-  const getLanguageColor = (language) => {
-    const colors = {
-      JavaScript: 'bg-warning-light/10 text-warning-light dark:bg-warning-dark/10 dark:text-warning-dark',
-      Python: 'bg-success-light/10 text-success-light dark:bg-success-dark/10 dark:text-success-dark',
-      CSS: 'bg-info-light/10 text-info-light dark:bg-info-dark/10 dark:text-info-dark',
-      HTML: 'bg-danger-light/10 text-danger-light dark:bg-danger-dark/10 dark:text-danger-dark',
-      TypeScript: 'bg-primary-light/10 text-primary-light dark:bg-primary-dark/10 dark:text-primary-dark',
-      Java: 'bg-secondary-light/10 text-secondary-light dark:bg-secondary-dark/10 dark:text-secondary-dark',
-    };
-    return colors[language] || 'bg-primary-light/10 text-primary-light dark:bg-primary-dark/10 dark:text-primary-dark';
-  };
+
 
   return (
     <motion.div
@@ -161,13 +164,16 @@ const SnippetCard = ({
         <span className={`px-2 py-1 text-xs rounded-xl ${getLanguageColor(snippet.language)}`}>
           {snippet.language}
         </span>
-        {snippet.tags?.slice(0, 3).map((tag) => (
-          <span
-            key={tag}
-            className="px-2 py-1 text-xs rounded-xl bg-border-light/50 text-text-secondary-light dark:bg-border-dark/50 dark:text-text-secondary-dark"
-            dangerouslySetInnerHTML={{ __html: highlightText(tag, highlightQuery) }}
-          />
-        ))}
+        {(() => {
+          const tags = parseTags(snippet.tags);
+          return tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="px-2 py-1 text-xs rounded-xl bg-border-light/50 text-text-secondary-light dark:bg-border-dark/50 dark:text-text-secondary-dark"
+              dangerouslySetInnerHTML={{ __html: highlightText(tag, highlightQuery) }}
+            />
+          ));
+        })()}
         {snippet.isPublic && (
           <span className="px-2 py-1 text-xs rounded-xl bg-success-light/10 text-success-light dark:bg-success-dark/10 dark:text-success-dark">
             Public
@@ -197,6 +203,54 @@ const SnippetCard = ({
         </button>
       </div>
 
+      {/* Attachments */}
+      {attachments.length > 0 && (
+        <div className="mb-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <Paperclip className="h-3 w-3 text-text-secondary-light dark:text-text-secondary-dark" />
+            <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+              {attachments.length} attachment{attachments.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {attachments.slice(0, 3).map((attachment, index) => {
+              const FileIcon = getFileIcon(attachment.type);
+              return (
+                <div
+                  key={attachment.id || index}
+                  className="flex items-center space-x-2 px-2 py-1 bg-background-light dark:bg-background-dark rounded-lg text-xs"
+                >
+                  {isImage(attachment.type) ? (
+                    <img
+                      src={getFilePreview(attachment.id, 20, 20)}
+                      alt={attachment.name}
+                      className="w-4 h-4 rounded object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <FileIcon 
+                    className={`w-3 h-3 text-text-secondary-light dark:text-text-secondary-dark ${
+                      isImage(attachment.type) ? 'hidden' : 'block'
+                    }`} 
+                  />
+                  <span className="text-text-secondary-light dark:text-text-secondary-dark truncate max-w-20">
+                    {attachment.name}
+                  </span>
+                </div>
+              );
+            })}
+            {attachments.length > 3 && (
+              <div className="px-2 py-1 bg-background-light dark:bg-background-dark rounded-lg text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                +{attachments.length - 3} more
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -213,7 +267,7 @@ const SnippetCard = ({
             </div>
           )}
           <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-            {snippet.updatedAt ? new Date(snippet.updatedAt).toLocaleDateString() : 'Recently'}
+            {formatDate(snippet.$createdAt || snippet.createdAt, formatDate(snippet.$updatedAt || snippet.updatedAt, 'Recently'))}
           </span>
         </div>
 
@@ -240,7 +294,7 @@ const SnippetCard = ({
             >
               <Share className="h-4 w-4 text-text-secondary-light dark:text-text-secondary-dark" />
             </button>
-            <Button variant="ghost" size="sm" onClick={handleView}>
+            <Button variant="ghost" size="sm" onClick={handleView} className="dark:text-white">
               <Eye className="h-4 w-4 mr-1" />
               View
             </Button>

@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { databases, DATABASE_ID, Query } from '../utils/appwrite';
+import { databases, DATABASE_ID, STARS_COLLECTION_ID, Query } from '../utils/appwrite';
 import { useEffect } from 'react';
 import client from '../utils/appwrite';
 
-// For MVP, we'll use a simple collection structure
-const STARS_COLLECTION_ID = process.env.REACT_APP_APPWRITE_STARS_COLLECTION_ID || 'stars';
+
 
 export const useUserStars = (userId, enableRealtime = true) => {
   const queryClient = useQueryClient();
@@ -18,7 +17,7 @@ export const useUserStars = (userId, enableRealtime = true) => {
           STARS_COLLECTION_ID,
           [
             Query.equal('userId', userId),
-            Query.orderDesc('createdAt')
+            Query.orderDesc('$id')
           ]
         );
         return response.documents;
@@ -139,8 +138,7 @@ export const useToggleStar = () => {
           'unique()',
           {
             userId,
-            snippetId,
-            createdAt: new Date().toISOString()
+            snippetId
           }
         );
         return { action: 'added', userId, snippetId, star: response };
@@ -160,7 +158,7 @@ export const useToggleStar = () => {
         if (isStarred) {
           return old.filter(star => star.snippetId !== snippetId);
         } else {
-          return [...old, { userId, snippetId, createdAt: new Date().toISOString() }];
+          return [...old, { userId, snippetId }];
         }
       });
       

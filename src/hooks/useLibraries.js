@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { databases, DATABASE_ID, SNIPPETS_COLLECTION_ID, Query } from '../utils/appwrite';
+import { databases, DATABASE_ID, SNIPPETS_COLLECTION_ID, LIBRARIES_COLLECTION_ID, Query } from '../utils/appwrite';
 import { useEffect } from 'react';
 import client from '../utils/appwrite';
 
-const LIBRARIES_COLLECTION_ID = process.env.REACT_APP_APPWRITE_LIBRARIES_COLLECTION_ID || 'libraries';
+
 
 export const useUserLibraries = (userId, enableRealtime = true) => {
   const queryClient = useQueryClient();
@@ -16,8 +16,7 @@ export const useUserLibraries = (userId, enableRealtime = true) => {
           DATABASE_ID,
           LIBRARIES_COLLECTION_ID,
           [
-            Query.equal('ownerId', userId),
-            Query.orderDesc('createdAt')
+            Query.equal('ownerId', userId)
           ]
         );
         return response.documents;
@@ -68,9 +67,16 @@ export const useLibrary = (libraryId, enableRealtime = true) => {
           libraryId
         );
         
-        // Fetch snippets in this library
-        if (library.snippetIds && library.snippetIds.length > 0) {
-          const snippetsPromises = library.snippetIds.map(id => 
+        // Parse and fetch snippets in this library
+        let snippetIds = [];
+        try {
+          snippetIds = typeof library.snippetIds === 'string' ? JSON.parse(library.snippetIds) : library.snippetIds || [];
+        } catch (e) {
+          snippetIds = [];
+        }
+        
+        if (snippetIds.length > 0) {
+          const snippetsPromises = snippetIds.map(id => 
             databases.getDocument(DATABASE_ID, SNIPPETS_COLLECTION_ID, id)
               .catch(() => null)
           );
@@ -79,6 +85,9 @@ export const useLibrary = (libraryId, enableRealtime = true) => {
         } else {
           library.snippets = [];
         }
+        
+        // Store parsed snippetIds for easier access
+        library.snippetIds = snippetIds;
         
         return library;
       } catch (error) {
@@ -123,9 +132,8 @@ export const useCreateLibrary = () => {
         {
           ownerId,
           name,
-          snippetIds: [],
-          isPrivate,
-          createdAt: new Date().toISOString()
+          snippetIds: JSON.stringify([]),
+          isPrivate
         }
       );
       return response;
@@ -185,7 +193,15 @@ export const useAddSnippetToLibrary = () => {
         libraryId
       );
       
-      const updatedSnippetIds = [...(library.snippetIds || [])];
+      // Parse existing snippetIds
+      let existingIds = [];
+      try {
+        existingIds = typeof library.snippetIds === 'string' ? JSON.parse(library.snippetIds) : library.snippetIds || [];
+      } catch (e) {
+        existingIds = [];
+      }
+      
+      const updatedSnippetIds = [...existingIds];
       if (!updatedSnippetIds.includes(snippetId)) {
         updatedSnippetIds.push(snippetId);
       }
@@ -195,7 +211,7 @@ export const useAddSnippetToLibrary = () => {
         LIBRARIES_COLLECTION_ID,
         libraryId,
         {
-          snippetIds: updatedSnippetIds
+          snippetIds: JSON.stringify(updatedSnippetIds)
         }
       );
       return response;
@@ -218,14 +234,22 @@ export const useRemoveSnippetFromLibrary = () => {
         libraryId
       );
       
-      const updatedSnippetIds = (library.snippetIds || []).filter(id => id !== snippetId);
+      // Parse existing snippetIds
+      let existingIds = [];
+      try {
+        existingIds = typeof library.snippetIds === 'string' ? JSON.parse(library.snippetIds) : library.snippetIds || [];
+      } catch (e) {
+        existingIds = [];
+      }
+      
+      const updatedSnippetIds = existingIds.filter(id => id !== snippetId);
       
       const response = await databases.updateDocument(
         DATABASE_ID,
         LIBRARIES_COLLECTION_ID,
         libraryId,
         {
-          snippetIds: updatedSnippetIds
+          snippetIds: JSON.stringify(updatedSnippetIds)
         }
       );
       return response;

@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { databases, DATABASE_ID, SNIPPETS_COLLECTION_ID, Query } from '../utils/appwrite';
+import { databases, DATABASE_ID, SNIPPETS_COLLECTION_ID, STARS_COLLECTION_ID, Query } from '../utils/appwrite';
 import { useEffect } from 'react';
 import client from '../utils/appwrite';
+import { generatePublicId } from '../utils/snippetHelpers';
 
 export const usePublicSnippets = (limit = 12, enableRealtime = true) => {
   const queryClient = useQueryClient();
@@ -133,7 +134,7 @@ export const useCreateSnippet = () => {
   
   return useMutation({
     mutationFn: async (snippetData) => {
-      const publicId = Math.random().toString(36).substring(2, 8);
+      const publicId = generatePublicId();
       const response = await databases.createDocument(
         DATABASE_ID,
         SNIPPETS_COLLECTION_ID,
@@ -144,14 +145,12 @@ export const useCreateSnippet = () => {
           description: snippetData.description || '',
           language: snippetData.language,
           code: snippetData.code,
-          attachments: snippetData.attachments || [],
-          tags: snippetData.tags || [],
+          attachments: JSON.stringify(snippetData.attachments || []),
+          tags: JSON.stringify(snippetData.tags || []),
           isPublic: snippetData.isPublic || false,
           publicId: publicId,
           starsCount: 0,
-          isFlagged: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          isFlagged: false
         }
       );
       return response;
@@ -175,8 +174,13 @@ export const useUpdateSnippet = () => {
         SNIPPETS_COLLECTION_ID,
         id,
         {
-          ...updateData,
-          updatedAt: new Date().toISOString(),
+          title: updateData.title,
+          description: updateData.description || '',
+          language: updateData.language,
+          code: updateData.code,
+          attachments: JSON.stringify(updateData.attachments || []),
+          tags: JSON.stringify(updateData.tags || []),
+          isPublic: updateData.isPublic || false
         }
       );
       return response;
@@ -227,8 +231,7 @@ export const useStarSnippet = () => {
         SNIPPETS_COLLECTION_ID,
         snippetId,
         {
-          starsCount: newStarsCount,
-          updatedAt: new Date().toISOString(),
+          starsCount: newStarsCount
         }
       );
       return response;
@@ -270,7 +273,7 @@ export const useFavoriteSnippets = (userId, enableRealtime = true) => {
         // Get user's starred snippets
         const starsResponse = await databases.listDocuments(
           DATABASE_ID,
-          'stars',
+          STARS_COLLECTION_ID,
           [
             Query.equal('userId', userId),
             Query.limit(100)
@@ -306,7 +309,7 @@ export const useFavoriteSnippets = (userId, enableRealtime = true) => {
     if (!enableRealtime || !userId) return;
 
     const unsubscribe = client.subscribe(
-      `databases.${DATABASE_ID}.collections.stars.documents`,
+      `databases.${DATABASE_ID}.collections.${STARS_COLLECTION_ID}.documents`,
       (response) => {
         const { payload } = response;
         

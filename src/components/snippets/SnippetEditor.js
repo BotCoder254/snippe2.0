@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, X, Eye, Upload, Tag, Globe, Lock } from 'lucide-react';
+import { Save, X, Eye, Upload, Tag, Globe, Lock, Paperclip } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import TagInput from '../ui/TagInput';
+import FileUpload from '../ui/FileUpload';
 import { useTagSuggestions } from '../../hooks/useTags';
 
 const LANGUAGES = [
@@ -31,14 +32,24 @@ const SnippetEditor = ({
 
   useEffect(() => {
     if (snippet) {
+      // Parse attachments if they're stored as JSON string
+      let attachments = [];
+      try {
+        attachments = typeof snippet.attachments === 'string' 
+          ? JSON.parse(snippet.attachments) 
+          : snippet.attachments || [];
+      } catch (e) {
+        attachments = [];
+      }
+      
       setFormData({
         title: snippet.title || '',
         description: snippet.description || '',
         language: snippet.language || 'JavaScript',
         code: snippet.code || '',
-        tags: snippet.tags || [],
+        tags: typeof snippet.tags === 'string' ? JSON.parse(snippet.tags) : snippet.tags || [],
         isPublic: snippet.isPublic || false,
-        attachments: snippet.attachments || []
+        attachments
       });
     }
   }, [snippet]);
@@ -189,6 +200,23 @@ const SnippetEditor = ({
               <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-2">
                 Use relevant tags like language, framework, or feature names
               </p>
+            </div>
+
+            {/* Attachments */}
+            <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-card dark:shadow-cardDark p-6">
+              <h3 className="font-medium text-text-primary-light dark:text-text-primary-dark mb-4 flex items-center">
+                <Paperclip className="h-4 w-4 mr-2" />
+                Attachments
+              </h3>
+              
+              <FileUpload
+                attachments={formData.attachments}
+                onAttachmentsChange={(newAttachments) => 
+                  setFormData(prev => ({ ...prev, attachments: newAttachments }))
+                }
+                maxFiles={5}
+                maxFileSize={10 * 1024 * 1024}
+              />
             </div>
 
             {/* Visibility */}

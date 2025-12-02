@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, ExternalLink, Globe, Lock, Check } from 'lucide-react';
 import Button from './Button';
 import { useGeneratePublicLink, useRevokePublicLink } from '../../hooks/usePublicSharing';
+import { parseTags } from '../../utils/snippetHelpers';
 
 const ShareModal = ({ snippet, isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
@@ -57,7 +58,7 @@ const ShareModal = ({ snippet, isOpen, onClose }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/50 z-[9999]"
           />
           
           {/* Modal */}
@@ -65,7 +66,7 @@ const ShareModal = ({ snippet, isOpen, onClose }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           >
             <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-xl max-w-md w-full">
               {/* Header */}
@@ -92,7 +93,7 @@ const ShareModal = ({ snippet, isOpen, onClose }) => {
                     <span className="px-2 py-1 text-xs rounded-lg bg-primary-light/10 text-primary-light dark:bg-primary-dark/10 dark:text-primary-dark">
                       {snippet.language}
                     </span>
-                    {snippet.tags?.slice(0, 2).map(tag => (
+                    {parseTags(snippet.tags).slice(0, 2).map(tag => (
                       <span
                         key={tag}
                         className="px-2 py-1 text-xs rounded-lg bg-secondary-light/10 text-secondary-light dark:bg-secondary-dark/10 dark:text-secondary-dark"
@@ -123,6 +124,7 @@ const ShareModal = ({ snippet, isOpen, onClose }) => {
                         size="sm"
                         onClick={handleRevokeLink}
                         loading={revokeLinkMutation.isLoading}
+                        className="dark:bg-surface-dark dark:text-white"
                       >
                         Make Private
                       </Button>
@@ -131,6 +133,7 @@ const ShareModal = ({ snippet, isOpen, onClose }) => {
                         size="sm"
                         onClick={handleGenerateLink}
                         loading={generateLinkMutation.isLoading}
+                        className="dark:bg-primary-dark dark:text-white"
                       >
                         Make Public
                       </Button>
@@ -166,7 +169,7 @@ const ShareModal = ({ snippet, isOpen, onClose }) => {
                           variant="outline"
                           size="sm"
                           onClick={handleCopyLink}
-                          className="flex-1"
+                          className="flex-1 dark:bg-surface-dark dark:text-white"
                         >
                           <Copy className="h-4 w-4 mr-2" />
                           {copied ? 'Copied!' : 'Copy Link'}
@@ -175,7 +178,7 @@ const ShareModal = ({ snippet, isOpen, onClose }) => {
                           variant="outline"
                           size="sm"
                           onClick={handleOpenInNewWindow}
-                          className="flex-1"
+                          className="flex-1 dark:bg-surface-dark dark:text-white"
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           Open

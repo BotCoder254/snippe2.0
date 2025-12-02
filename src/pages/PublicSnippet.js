@@ -6,6 +6,7 @@ import { usePublicSnippet } from '../hooks/usePublicSharing';
 import Button from '../components/ui/Button';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import Loading from '../components/ui/Loading';
+import { parseTags, formatDate } from '../utils/snippetHelpers';
 
 const PublicSnippet = () => {
   const { publicId } = useParams();
@@ -100,7 +101,7 @@ const PublicSnippet = () => {
                 <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary-light dark:text-text-secondary-dark">
                   <div className="flex items-center space-x-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(snippet.createdAt).toLocaleDateString()}</span>
+                    <span>{formatDate(snippet.$createdAt || snippet.createdAt)}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Eye className="h-4 w-4" />
@@ -131,19 +132,22 @@ const PublicSnippet = () => {
             </div>
 
             {/* Tags */}
-            {snippet.tags && snippet.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border-light dark:border-border-dark">
-                {snippet.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center px-2 py-1 text-xs rounded-lg bg-secondary-light/10 text-secondary-light dark:bg-secondary-dark/10 dark:text-secondary-dark"
-                  >
-                    <Tag className="h-3 w-3 mr-1" />
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
+            {(() => {
+              const tags = parseTags(snippet.tags);
+              return tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border-light dark:border-border-dark">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-2 py-1 text-xs rounded-lg bg-secondary-light/10 text-secondary-light dark:bg-secondary-dark/10 dark:text-secondary-dark"
+                    >
+                      <Tag className="h-3 w-3 mr-1" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Code Block */}

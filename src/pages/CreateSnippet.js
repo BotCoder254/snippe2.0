@@ -17,7 +17,13 @@ const CreateSnippet = () => {
       };
       
       const newSnippet = await createMutation.mutateAsync(snippetData);
-      navigate(`/snippet/${newSnippet.$id}`);
+      
+      // Navigate to the snippet details page or public link based on visibility
+      if (newSnippet.isPublic && newSnippet.publicId) {
+        navigate(`/s/${newSnippet.publicId}`);
+      } else {
+        navigate(`/snippet/${newSnippet.$id}`);
+      }
     } catch (error) {
       console.error('Failed to create snippet:', error);
     }

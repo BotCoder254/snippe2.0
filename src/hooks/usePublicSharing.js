@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { databases, DATABASE_ID, SNIPPETS_COLLECTION_ID, Query } from '../utils/appwrite';
+import { generatePublicId } from '../utils/snippetHelpers';
 
 export const usePublicSnippet = (publicId) => {
   return useQuery({
@@ -37,7 +38,7 @@ export const useGeneratePublicLink = () => {
   return useMutation({
     mutationFn: async ({ snippetId }) => {
       // Generate a short public ID
-      const publicId = Math.random().toString(36).substring(2, 8);
+      const publicId = generatePublicId();
       
       const response = await databases.updateDocument(
         DATABASE_ID,
@@ -45,8 +46,7 @@ export const useGeneratePublicLink = () => {
         snippetId,
         {
           isPublic: true,
-          publicId: publicId,
-          updatedAt: new Date().toISOString()
+          publicId: publicId
         }
       );
       
@@ -72,8 +72,7 @@ export const useRevokePublicLink = () => {
         SNIPPETS_COLLECTION_ID,
         snippetId,
         {
-          isPublic: false,
-          updatedAt: new Date().toISOString()
+          isPublic: false
         }
       );
       return response;

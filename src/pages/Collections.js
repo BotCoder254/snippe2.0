@@ -7,6 +7,7 @@ import { useUserLibraries, useDeleteLibrary } from '../hooks/useLibraries';
 import Button from '../components/ui/Button';
 import LibraryModal from '../components/ui/LibraryModal';
 import Loading from '../components/ui/Loading';
+import { formatDate } from '../utils/snippetHelpers';
 
 const Collections = () => {
   const { user } = useAuth();
@@ -243,7 +244,7 @@ const Collections = () => {
                     Created
                   </span>
                   <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                    {new Date(library.createdAt).toLocaleDateString()}
+                    {formatDate(library.$createdAt || library.createdAt)}
                   </span>
                 </div>
               </div>
